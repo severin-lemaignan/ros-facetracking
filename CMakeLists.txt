@@ -73,7 +73,10 @@ include_directories(include
 
 ## Declare a cpp executable
 add_definitions(-std=c++11)
-add_executable(facetraking src/facetracking.cpp src/detection.cpp)
+add_executable(facetraking 
+                src/facetracking.cpp
+                src/detection.cpp 
+                src/recognition.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
