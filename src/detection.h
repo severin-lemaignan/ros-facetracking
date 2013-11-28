@@ -16,7 +16,6 @@ public:
 
 private:
     cv::CascadeClassifier frontalface;
-    cv::CascadeClassifier eyes;
 };
 
 class FaceTracker {

@@ -12,8 +12,7 @@ using namespace cv;
 using namespace std;
 
 FaceDetector::FaceDetector() :
-        frontalface(CascadeClassifier("haarcascade_frontalface_default.xml")),
-        eyes(CascadeClassifier("haarcascade_eye.xml"))
+        frontalface(CascadeClassifier("haarcascade_frontalface_default.xml"))
 {
 
 #ifdef DEBUG_detection

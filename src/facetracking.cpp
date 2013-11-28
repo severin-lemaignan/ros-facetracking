@@ -6,6 +6,7 @@
 #include <map>
 
 #include "detection.h"
+#include "recognition.h"
 
 //#define DEBUG_facetraking
 
@@ -58,9 +59,13 @@ int main(int argc, char *argv[])
 
     unsigned int frameCount = 0;
 
+    Recognizer faceRecognizer;
+
     map<int, FaceTracker> faceTrackers;
 
     Mode mode = DETECT;
+
+    bool learn = true;
 
     // Main loop, exiting when 'q is pressed'
     for (; 'q' != (char) cv::waitKey(1); ) {
@@ -87,7 +92,14 @@ int main(int argc, char *argv[])
 
             for( auto i = 0 ; i < faces.size() ; i++ )
             {
-
+                if (learn) {
+                    learn = !faceRecognizer.addPictureOf(inputImage(faces[i]), "severin");
+                }
+                else
+                {
+                    auto guess = faceRecognizer.whois(inputImage(faces[i]));
+                    cout << "I think this is " << guess.first << " (confidence: " << guess.second << endl;
+                }
 
                 auto features = facedetector.features(inputImage, faces[i]);
                 faceTrackers.insert(pair<int, FaceTracker>(i, FaceTracker(inputImage, features)));
@@ -132,7 +144,7 @@ int main(int argc, char *argv[])
         cout << "\x1b[2F"; // up two lines
 #endif
         cout << "Time to detect faces: " << ((double)cv::getTickCount() - tStartCount)/cv::getTickFrequency() << "ms" << std::endl;
-        cout << faceTrackers.size() << " faces currently tracked." << endl;
+        cout << faceTrackers.size() << " face(s) detected." << endl;
 
         // Finally...
         cv::imshow("faces", debugImage);
