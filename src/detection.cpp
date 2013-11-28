@@ -15,6 +15,7 @@ FaceDetector::FaceDetector() :
         frontalface(CascadeClassifier("haarcascade_frontalface_default.xml")),
         eyes(CascadeClassifier("haarcascade_eye.xml"))
 {
+
 #ifdef DEBUG_detection
     namedWindow("detection-debug");
 #endif
@@ -75,12 +76,38 @@ vector<Point2f> FaceDetector::features(const Mat& image, const Rect& face) {
     return features;
 }
 
+Point2f mean(const vector<Point2f>& vals)
+{
+    size_t nbvals = vals.size();
+
+    auto sum = vals[0];
+    for(uint i = 1 ; i < nbvals ; ++i) sum += vals[i];
+    return sum * (1.f/nbvals);
+}
+
+double variance(const vector<Point2f>& vals)
+{
+    size_t nbvals = vals.size();
+
+    auto current_mean = mean(vals);
+
+    auto temp = norm(current_mean-vals[0])*norm(current_mean-vals[0]);
+    for(uint i = 1 ; i < vals.size() ; ++i)
+        temp += norm(current_mean-vals[i])*norm(current_mean-vals[i]);
+    return temp/nbvals;
+}
+
 
 FaceTracker::FaceTracker(const Mat& image,
                          const vector<Point2f>& features): 
                 prevImg(image.clone()),
-                prevFeatures(features)
+                prevFeatures(features),
+                _centroid(mean(features)),
+                _variance(variance(features))
 {
+#ifdef DEBUG_detection
+    cout << "Initial variance of the feature cluster: " << _variance << endl;
+#endif
 }
 
 vector<Point2f> FaceTracker::track(const Mat& nextImg) {
@@ -113,8 +140,12 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
         if (status[i] == 1) found.push_back(nextFeatures[i]);
     }
 
+    found = pruneFeatures(found);
+
+    _centroid = mean(found);
+    _variance = variance(found);
 #ifdef DEBUG_detection
-    cout << "Detected features: " << found.size() << endl;
+    cout << "Variance: " << _variance << endl;
 #endif
 
     return found;
@@ -122,3 +153,18 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
 }
 
 
+vector<Point2f> FaceTracker::pruneFeatures(const vector<Point2f>& features) {
+
+    //auto centroid = mean(features);
+    //auto variance = variance(features);
+
+    vector<Point2f> prunedFeatures;
+
+    for (auto p : features) {
+        if (pow(norm(p - _centroid),2) < 3 * _variance) prunedFeatures.push_back(p);
+    }
+
+    return prunedFeatures;
+
+
+}

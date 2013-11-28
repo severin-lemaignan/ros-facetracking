@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
     videoCapture.set(CV_CAP_PROP_FRAME_WIDTH, 640);
     videoCapture.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
 
+    // Print an empty lines to leave room for display with ANSI sequences
+    cout << endl << endl;
 
     namedWindow("faces"); 
 
@@ -71,6 +73,11 @@ int main(int argc, char *argv[])
 
         int64 tStartCount = cv::getTickCount();
 
+        // Force detection every few second to be able to detect new users.
+        if (frameCount % FRAMES_BETWEEN_DETECTION == 0) {
+            mode = DETECT;
+        }
+
         if (mode == DETECT) // face detection!
         {
             faceTrackers.clear();
@@ -81,14 +88,15 @@ int main(int argc, char *argv[])
             for( auto i = 0 ; i < faces.size() ; i++ )
             {
 
-                rectangle( debugImage, faces[i], scColor, 4 );
 
                 auto features = facedetector.features(inputImage, faces[i]);
                 faceTrackers.insert(pair<int, FaceTracker>(i, FaceTracker(inputImage, features)));
-
+#ifdef DEBUG_facetraking
+                rectangle( debugImage, faces[i], scColor, 4 );
                 for ( auto p : features ) {
                     line( debugImage, p, p, CV_RGB(10, 200, 100), 10 );
                 }
+#endif
             }
 
             if (faces.size() > 0) mode = TRACK;
@@ -99,25 +107,32 @@ int main(int argc, char *argv[])
                 auto features = kv.second.track(inputImage);
 
                 auto rect = boundingRect(features);
-                rectangle( debugImage, rect, CV_RGB(10, 100, 200), 4 );
+                line( debugImage, kv.second.centroid(), kv.second.centroid(), CV_RGB(10, 100, 200), 20 );
 
+#ifdef DEBUG_facetraking
+                rectangle( debugImage, rect, CV_RGB(10, 100, 200), 4 );
                 for (const auto& p : features ) {
                     line( debugImage, p, p, CV_RGB(10, 200, 100), 10 );
                 }
 
-#ifdef DEBUG_facetraking
                 cout << "Tracking " << features.size() << " features" << endl;
 #endif
 
                 if (features.size() < 10) {
+#ifdef DEBUG_facetraking
                     cout << "Not enough features! Going back to detection" << endl;
+#endif
                     mode = DETECT;
                 }
             }
 
         }
 
-        std::cout << "Time to detect faces: " << ((double)cv::getTickCount() - tStartCount)/cv::getTickFrequency() << "ms" << std::endl;
+#ifndef DEBUG_facetraking
+        cout << "\x1b[2F"; // up two lines
+#endif
+        cout << "Time to detect faces: " << ((double)cv::getTickCount() - tStartCount)/cv::getTickFrequency() << "ms" << std::endl;
+        cout << faceTrackers.size() << " faces currently tracked." << endl;
 
         // Finally...
         cv::imshow("faces", debugImage);
