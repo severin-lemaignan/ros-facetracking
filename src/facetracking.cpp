@@ -2,25 +2,17 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <map>
 
 #include "detection.h"
 #include "recognition.h"
 
-//#define DEBUG_facetraking
+#define DEBUG_facetraking
 
 using namespace cv;
 using namespace std;
-
-// The color (magenta) that will be used for all information
-// overlaid on the captured image
-const static cv::Scalar scColor(255, 0, 255);
-
-// These constants will be given to OpenCv for drawing with
-// sub-pixel accuracy with fixed point precision coordinates
-static const int scShift = 16;
-static const float scPrecision = 1<<scShift;
 
 static const unsigned int FRAMES_BETWEEN_DETECTION = 50;
 
@@ -85,34 +77,44 @@ int main(int argc, char *argv[])
 
         if (mode == DETECT) // face detection!
         {
-            faceTrackers.clear();
 
             auto faces = facedetector.detect(inputImage);
 
 
             for( auto i = 0 ; i < faces.size() ; i++ )
             {
+                bool startTracker = true;
+                for(const auto& kv : faceTrackers) {
+                    if ((faces[i] & kv.second.boundingBox()).area() != 0) startTracker = false;
+                }
+
+                // if we come here, a new face has been detected
+
                 if (learn) {
                     learn = !faceRecognizer.addPictureOf(inputImage(faces[i]), "severin");
                 }
                 else
                 {
                     auto guess = faceRecognizer.whois(inputImage(faces[i]));
-                    if (guess.first == "") {
+                    if (guess.second == 0.) {
                     cout << "\x1b[1F\t\t\tI do not recognize this face!" << endl;
                     } else {
                     cout << "\x1b[1F\t\t\tI think this is " << guess.first << " (confidence: " << guess.second << ")" << endl;
                     }
                 }
 
-                auto features = facedetector.features(inputImage, faces[i]);
-                faceTrackers.insert(pair<string, FaceTracker>("severin", FaceTracker(inputImage, features)));
+                if (startTracker) {
+                    auto features = facedetector.features(inputImage, faces[i]);
+                    stringstream namestr;
+                    namestr << "human" << faceTrackers.size() + 1;
+                    faceTrackers.insert(pair<string, FaceTracker>(namestr.str(), FaceTracker(inputImage, features)));
 #ifdef DEBUG_facetraking
-                rectangle( debugImage, faces[i], scColor, 4 );
-                for ( auto p : features ) {
-                    line( debugImage, p, p, CV_RGB(10, 200, 100), 10 );
-                }
+                    rectangle( debugImage, faces[i], CV_RGB(255,0,255), 4 );
+                    for ( auto p : features ) {
+                        line( debugImage, p, p, CV_RGB(10, 200, 100), 10 );
+                    }
 #endif
+                }
             }
 
             if (faces.size() > 0) mode = TRACK;

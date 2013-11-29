@@ -1,6 +1,7 @@
 #include <vector>
-#include "opencv2/core/core.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp> //boundingRect
+#include <opencv2/objdetect/objdetect.hpp>
 
 static const unsigned char NB_FEATURES = 20;
 
@@ -24,7 +25,8 @@ public:
     FaceTracker(const cv::Mat& image, const std::vector<cv::Point2f>& features);
     std::vector<cv::Point2f> track(const cv::Mat& image);
 
-    cv::Point2f centroid() {return _centroid;}
+    cv::Point2f centroid() const {return _centroid;}
+    cv::Rect boundingBox() const {return cv::boundingRect(prevFeatures);}
 private:
 
     std::vector<cv::Point2f> pruneFeatures(const std::vector<cv::Point2f>& features);
