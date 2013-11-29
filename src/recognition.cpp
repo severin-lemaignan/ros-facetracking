@@ -3,7 +3,7 @@
 
 #include "recognition.h"
 
-#define DEBUG_recognition
+//#define DEBUG_recognition
 #ifdef DEBUG_recognition
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
@@ -19,15 +19,33 @@ const double FACE_ELLIPSE_CY = 0.40;
 const double FACE_ELLIPSE_W = 0.50;         // Should be atleast 0.5
 const double FACE_ELLIPSE_H = 0.80;         // Controls how tall the face mask is.
 
+static Mat norm_0_255(InputArray _src) {
+    Mat src = _src.getMat();
+    // Create and return normalized image:
+    Mat dst;
+    switch(src.channels()) {
+    case 1:
+        cv::normalize(_src, dst, 0, 255, NORM_MINMAX, CV_8UC1);
+        break;
+    case 3:
+        cv::normalize(_src, dst, 0, 255, NORM_MINMAX, CV_8UC3);
+        break;
+    default:
+        src.copyTo(dst);
+        break;
+    }
+    return dst;
+}
 
 Recognizer::Recognizer():
         eyes(CascadeClassifier("haarcascade_eye.xml"))
 {
 
-    int num_components = 10;
-    double threshold = 10.0;
+    int num_components = 0;
+    double threshold = 100.0;
 
-    model = createEigenFaceRecognizer(num_components, threshold);
+    //model = createEigenFaceRecognizer(num_components, threshold);
+    model = createEigenFaceRecognizer();
 }
 
 bool Recognizer::addPictureOf(const Mat& image, const string& label) {
@@ -50,15 +68,16 @@ bool Recognizer::addPictureOf(const Mat& image, const string& label) {
 
 
     if (trainingSet[idx].size() < MAX_TRAINING_IMAGES) {
-        cout << "\x1b[1F\t\t\tAcquiring " << trainingSet[idx].size() << "/" << MAX_TRAINING_IMAGES << " images for " << label << "... ";
+        cout << "\x1b[1F\t\t\tAcquiring " << trainingSet[idx].size() + 1 << "/" << MAX_TRAINING_IMAGES << " images for " << label << "... ";
         Mat preprocessedFace;
 
-        if (preprocessFace(image, preprocessedFace))
+        if (preprocessFace(image, preprocessedFace)) {
             cout << "ok." << endl;
+            trainingSet[idx].push_back(preprocessedFace);
+        }
         else
-            cout << "failed." << endl;
+            cout << "failed!" << endl;
 
-        trainingSet[idx].push_back(preprocessedFace);
         return false;
     }
 
@@ -81,7 +100,7 @@ void Recognizer::train(int label) {
 
     model->train(images, labels);
     trained_labels[label] = true;
-    cout << "\t\tI can now recognize " << human_labels[label] << " in new images." << endl;
+    cout << "\x1b[1F\t\t\tI can now recognize " << human_labels[label] << " in new images." << endl;
 }
 
 pair<string, double> Recognizer::whois(const Mat& image) {
@@ -89,9 +108,19 @@ pair<string, double> Recognizer::whois(const Mat& image) {
     int label = -1;
     double confidence = 0.0;
 
-    model->predict(image, label, confidence);
+    Mat preprocessedFace;
 
-    if (confidence > 0.0)
+    if (preprocessFace(image, preprocessedFace)) {
+        model->predict(preprocessedFace, label, confidence);
+    }
+    else
+    {
+        //cerr << "Could not find the eyes!" << endl;
+        return make_pair("", 0.0);
+    }
+
+
+    if (label >= 0)
         return make_pair(human_labels[label], confidence);
     else
         return make_pair("", 0.0);
@@ -168,18 +197,16 @@ bool Recognizer::preprocessFace(const Mat& faceImg, Mat& dstImg) {
     // Use the mask, to remove outside pixels.
     dstImg = Mat(warped.size(), CV_8U, Scalar(128)); // Clear the output image to a default gray.
 
-#ifdef DEBUG_recognition
-    namedWindow("filtered");
-    imshow("filtered", filtered);
-    namedWindow("dstImg");
-    imshow("dstImg", dstImg);
-    namedWindow("mask");
-    imshow("mask", mask);
-#endif
-
     // Apply the elliptical mask on the face.
     filtered.copyTo(dstImg, mask);  // Copies non-masked pixels from filtered to dstImg.
-    //imshow("dstImg", dstImg);
+
+#ifdef DEBUG_recognition
+    //namedWindow("filtered");
+    //imshow("filtered", filtered);
+    namedWindow("preprocessedface-debug");
+    imshow("preprocessedface-debug", dstImg);
+#endif
+
 
     return true;
 }
@@ -221,6 +248,15 @@ bool Recognizer::detectBothEyes(const Mat &face, Point &leftEye, Point &rightEye
     vector<Rect> leftEyeRects, rightEyeRects;
     Rect leftEyeRect, rightEyeRect;
 
+#ifdef DEBUG_recognition
+    Mat debugImage = face.clone();
+    rectangle(debugImage, Rect(leftX, topY, widthX, heightY), CV_RGB(255,255,255), 3);
+    rectangle(debugImage, Rect(rightX, topY, widthX, heightY), CV_RGB(255,255,255), 3);
+    namedWindow("eyes-debug");
+    imshow("eyes-debug", debugImage);
+#endif
+
+
     int flags = CASCADE_FIND_BIGGEST_OBJECT;
     eyes.detectMultiScale( topLeftOfFace, leftEyeRects, 1.1, 2, flags, Size(30, 30) );
     eyes.detectMultiScale( topRightOfFace, rightEyeRects, 1.1, 2, flags, Size(30, 30) );
@@ -240,6 +276,74 @@ bool Recognizer::detectBothEyes(const Mat &face, Point &leftEye, Point &rightEye
     rightEyeRect.x += rightX; // Adjust the right-eye rectangle, since it starts on the right side of the image.
     rightEyeRect.y += topY;  // Adjust the right-eye rectangle because the face border was removed.
     rightEye = Point(rightEyeRect.x + rightEyeRect.width/2, rightEyeRect.y + rightEyeRect.height/2);
+
+#ifdef DEBUG_recognition
+    line(debugImage, leftEye,leftEye, CV_RGB(255,255,255), 3);
+    line(debugImage, rightEye,rightEye, CV_RGB(255,255,255), 3);
+    namedWindow("eyes-debug");
+    imshow("eyes-debug", debugImage);
+#endif
+
+    return true;
 }
 
 
+// Generate an approximately reconstructed face by back-projecting the eigenvectors & eigenvalues of the given (preprocessed) face.
+Mat Recognizer::reconstructFace(const Mat preprocessedFace)
+{
+    // Since we can only reconstruct the face for some types of FaceRecognizer models (ie: Eigenfaces or Fisherfaces),
+    // we should surround the OpenCV calls by a try/catch block so we don't crash for other models.
+    try {
+
+        // Get some required data from the FaceRecognizer model.
+        Mat eigenvectors = model->get<Mat>("eigenvectors");
+        Mat averageFaceRow = model->get<Mat>("mean");
+
+        int faceHeight = preprocessedFace.rows;
+
+        // Project the input image onto the PCA subspace.
+        Mat projection = subspaceProject(eigenvectors, averageFaceRow, preprocessedFace.reshape(1,1));
+        //printMatInfo(projection, "projection");
+
+        // Generate the reconstructed face back from the PCA subspace.
+        Mat reconstructionRow = subspaceReconstruct(eigenvectors, averageFaceRow, projection);
+        //printMatInfo(reconstructionRow, "reconstructionRow");
+
+        // Convert the float row matrix to a regular 8-bit image. Note that we
+        // shouldn't use "getImageFrom1DFloatMat()" because we don't want to normalize
+        // the data since it is already at the perfect scale.
+
+        // Make it a rectangular shaped image instead of a single row.
+        Mat reconstructionMat = reconstructionRow.reshape(1, faceHeight);
+        // Convert the floating-point pixels to regular 8-bit uchar pixels.
+        Mat reconstructedFace = Mat(reconstructionMat.size(), CV_8U);
+        reconstructionMat.convertTo(reconstructedFace, CV_8U, 1, 0);
+        //printMatInfo(reconstructedFace, "reconstructedFace");
+
+        return reconstructedFace;
+
+    } catch (cv::Exception e) {
+        //cout << "WARNING: Missing FaceRecognizer properties." << endl;
+        return Mat();
+    }
+}
+
+vector<Mat> Recognizer::eigenfaces() {
+
+    vector<Mat> faces;
+
+    Mat W = model->getMat("eigenvectors");
+    // Display or save the Eigenfaces:
+    for (int i = 0; i < min(10, W.cols); i++) {
+        // get eigenvector #i
+        Mat ev = W.col(i).clone();
+        // Reshape to original size & normalize to [0...255] for imshow.
+        Mat grayscale = norm_0_255(ev.reshape(1, FACE_WIDTH));
+        // Show the image & apply a Jet colormap for better sensing.
+        Mat cgrayscale;
+        applyColorMap(grayscale, cgrayscale, COLORMAP_JET);
+        faces.push_back(cgrayscale);
+    }
+
+    return faces;
+}

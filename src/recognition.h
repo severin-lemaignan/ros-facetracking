@@ -26,11 +26,15 @@ public:
     std::pair<std::string, double> whois(const cv::Mat& image);
 
 
+    cv::Mat reconstructFace(const cv::Mat preprocessedFace);
+    bool preprocessFace(const cv::Mat& inputImage, cv::Mat& outputImage);
+
+    std::vector<cv::Mat> eigenfaces();
+
 private:
     // we need to detect the eyes to preprocess the face before learning
     cv::CascadeClassifier eyes;
 
-    bool preprocessFace(const cv::Mat& inputImage, cv::Mat& outputImage);
     bool detectBothEyes(const cv::Mat &face, cv::Point &leftEye, cv::Point &rightEye);
     void train(int label);
 

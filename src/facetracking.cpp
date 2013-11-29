@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
     Recognizer faceRecognizer;
 
-    map<int, FaceTracker> faceTrackers;
+    map<string, FaceTracker> faceTrackers;
 
     Mode mode = DETECT;
 
@@ -98,11 +98,15 @@ int main(int argc, char *argv[])
                 else
                 {
                     auto guess = faceRecognizer.whois(inputImage(faces[i]));
-                    cout << "I think this is " << guess.first << " (confidence: " << guess.second << endl;
+                    if (guess.first == "") {
+                    cout << "\x1b[1F\t\t\tI do not recognize this face!" << endl;
+                    } else {
+                    cout << "\x1b[1F\t\t\tI think this is " << guess.first << " (confidence: " << guess.second << ")" << endl;
+                    }
                 }
 
                 auto features = facedetector.features(inputImage, faces[i]);
-                faceTrackers.insert(pair<int, FaceTracker>(i, FaceTracker(inputImage, features)));
+                faceTrackers.insert(pair<string, FaceTracker>("severin", FaceTracker(inputImage, features)));
 #ifdef DEBUG_facetraking
                 rectangle( debugImage, faces[i], scColor, 4 );
                 for ( auto p : features ) {
@@ -118,10 +122,15 @@ int main(int argc, char *argv[])
             for(auto& kv : faceTrackers) {
                 auto features = kv.second.track(inputImage);
 
-                auto rect = boundingRect(features);
-                line( debugImage, kv.second.centroid(), kv.second.centroid(), CV_RGB(10, 100, 200), 20 );
+                auto centroid = kv.second.centroid();
+                line( debugImage, centroid, centroid, CV_RGB(10, 100, 200), 20 );
+                putText(debugImage,
+                        kv.first,
+                        centroid + Point2f(10,10),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(10,100,200));
 
 #ifdef DEBUG_facetraking
+                auto rect = boundingRect(features);
                 rectangle( debugImage, rect, CV_RGB(10, 100, 200), 4 );
                 for (const auto& p : features ) {
                     line( debugImage, p, p, CV_RGB(10, 200, 100), 10 );
@@ -141,7 +150,7 @@ int main(int argc, char *argv[])
         }
 
 #ifndef DEBUG_facetraking
-        cout << "\x1b[2F"; // up two lines
+        cout << "\x1b[1F\x1b[1F"; // clear line above + up 2 lines
 #endif
         cout << "Time to detect faces: " << ((double)cv::getTickCount() - tStartCount)/cv::getTickFrequency() << "ms" << std::endl;
         cout << faceTrackers.size() << " face(s) detected." << endl;
