@@ -105,6 +105,8 @@ void Recognizer::train(int label) {
 
 pair<string, double> Recognizer::whois(const Mat& image) {
 
+    if (trained_labels.empty()) return make_pair("", 0.0);
+
     int label = -1;
     double confidence = 0.0;
 

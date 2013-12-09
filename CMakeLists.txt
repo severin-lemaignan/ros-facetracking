@@ -75,6 +75,7 @@ include_directories(include
 add_definitions(-std=c++11)
 add_executable(facetraking 
                 src/facetracking.cpp
+                src/human.cpp
                 src/detection.cpp 
                 src/recognition.cpp)
 

@@ -1,3 +1,6 @@
+#ifndef RECOGNITION_H
+#define RECOGNITION_H
+
 #include <vector>
 #include <map>
 #include <string>
@@ -45,3 +48,4 @@ private:
     std::map<int, std::string> human_labels;
 };
 
+#endif // RECOGNITION_H

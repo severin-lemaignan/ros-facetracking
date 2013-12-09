@@ -8,15 +8,15 @@
 
 #include "detection.h"
 #include "recognition.h"
+#include "human.h"
 
-#define DEBUG_facetraking
+#define DEBUG_facetracking
 
 using namespace cv;
 using namespace std;
 
 static const unsigned int FRAMES_BETWEEN_DETECTION = 50;
 
-enum Mode {DETECT, TRACK};
 
 int main(int argc, char *argv[])
 {
@@ -53,9 +53,7 @@ int main(int argc, char *argv[])
 
     Recognizer faceRecognizer;
 
-    map<string, FaceTracker> faceTrackers;
-
-    Mode mode = DETECT;
+    vector<Human> humans;
 
     bool learn = true;
 
@@ -72,93 +70,57 @@ int main(int argc, char *argv[])
 
         // Force detection every few second to be able to detect new users.
         if (frameCount % FRAMES_BETWEEN_DETECTION == 0) {
-            mode = DETECT;
-        }
-
-        if (mode == DETECT) // face detection!
-        {
 
             auto faces = facedetector.detect(inputImage);
 
 
-            for( auto i = 0 ; i < faces.size() ; i++ )
+            for( const auto& face : faces )
             {
-                bool startTracker = true;
-                for(const auto& kv : faceTrackers) {
-                    if ((faces[i] & kv.second.boundingBox()).area() != 0) startTracker = false;
+                bool alreadyTracked = false;
+                for(const auto& human : humans) {
+                    if (human.isMyself(face))
+                    {
+                        alreadyTracked = true;
+                        break;
+                    }
                 }
+                if (alreadyTracked) continue;
 
                 // if we come here, a new face has been detected
-
-                if (learn) {
-                    learn = !faceRecognizer.addPictureOf(inputImage(faces[i]), "severin");
-                }
-                else
-                {
-                    auto guess = faceRecognizer.whois(inputImage(faces[i]));
-                    if (guess.second == 0.) {
-                    cout << "\x1b[1F\t\t\tI do not recognize this face!" << endl;
-                    } else {
+                // first check if we recognize it.
+                // if not, create a new human
+                auto guess = faceRecognizer.whois(inputImage(face));
+                if (guess.second != 0.) {
                     cout << "\x1b[1F\t\t\tI think this is " << guess.first << " (confidence: " << guess.second << ")" << endl;
-                    }
-                }
+                } else {
+                    cout << "\x1b[1F\t\t\tI do not recognize this face!" << endl;
 
-                if (startTracker) {
-                    auto features = facedetector.features(inputImage, faces[i]);
                     stringstream namestr;
-                    namestr << "human" << faceTrackers.size() + 1;
-                    faceTrackers.insert(pair<string, FaceTracker>(namestr.str(), FaceTracker(inputImage, features)));
-#ifdef DEBUG_facetraking
-                    rectangle( debugImage, faces[i], CV_RGB(255,0,255), 4 );
-                    for ( auto p : features ) {
-                        line( debugImage, p, p, CV_RGB(10, 200, 100), 10 );
-                    }
-#endif
-                }
-            }
-
-            if (faces.size() > 0) mode = TRACK;
-        }
-        else // face tracking!
-        {
-            for(auto& kv : faceTrackers) {
-                auto features = kv.second.track(inputImage);
-
-                auto centroid = kv.second.centroid();
-                line( debugImage, centroid, centroid, CV_RGB(10, 100, 200), 20 );
-                putText(debugImage,
-                        kv.first,
-                        centroid + Point2f(10,10),
-                        cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(10,100,200));
-
-#ifdef DEBUG_facetraking
-                auto rect = boundingRect(features);
-                rectangle( debugImage, rect, CV_RGB(10, 100, 200), 4 );
-                for (const auto& p : features ) {
-                    line( debugImage, p, p, CV_RGB(10, 200, 100), 10 );
-                }
-
-                cout << "Tracking " << features.size() << " features" << endl;
-#endif
-
-                if (features.size() < 10) {
-#ifdef DEBUG_facetraking
-                    cout << "Not enough features! Going back to detection" << endl;
-#endif
-                    mode = DETECT;
+                    namestr << "human" << humans.size() + 1;
+                    humans.push_back(Human(namestr.str(), inputImage, face, faceRecognizer));
                 }
             }
 
         }
 
-#ifndef DEBUG_facetraking
+        // face tracking!
+        for( auto human : humans) {
+            human.update(inputImage);
+#ifdef DEBUG_facetracking
+            human.showFace(debugImage);
+#endif
+        }
+
+#ifndef DEBUG_facetracking
         cout << "\x1b[1F\x1b[1F"; // clear line above + up 2 lines
 #endif
         cout << "Time to detect faces: " << ((double)cv::getTickCount() - tStartCount)/cv::getTickFrequency() << "ms" << std::endl;
-        cout << faceTrackers.size() << " face(s) detected." << endl;
+        cout << humans.size() << " face(s) detected." << endl;
 
         // Finally...
+#ifdef DEBUG_facetracking
         cv::imshow("faces", debugImage);
+#endif
         frameCount++;
     }
 

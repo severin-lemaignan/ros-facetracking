@@ -52,29 +52,6 @@ vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
 
 }
 
-vector<Point2f> FaceDetector::features(const Mat& image, const Rect& face) {
-
-    double quality = 0.01;
-    double min_distance = 10;
-
-    Mat mask = Mat::zeros(image.size(), CV_8UC1);
-    auto rrect = RotatedRect(Point2f(face.x + face.width/2, face.y + face.height/2),
-                             face.size(),
-                             0.f);
-
-    ellipse(mask, rrect, CV_RGB(255,255,255), CV_FILLED);
-
-#ifdef DEBUG_detection
-    imshow("detection-debug", mask);
-#endif
-
-    vector<Point2f> features;
-    features.reserve(NB_FEATURES);
-
-    goodFeaturesToTrack(image, features, NB_FEATURES, quality, min_distance, mask);
-    return features;
-}
-
 Point2f mean(const vector<Point2f>& vals)
 {
     size_t nbvals = vals.size();
@@ -141,14 +118,40 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
 
     found = pruneFeatures(found);
 
-    _centroid = mean(found);
-    _variance = variance(found);
+    if (!found.empty()) {
+
+        _centroid = mean(found);
+        _variance = variance(found);
 #ifdef DEBUG_detection
-    cout << "Variance: " << _variance << endl;
+        cout << "Variance: " << _variance << endl;
 #endif
+    }
 
     return found;
 
+}
+
+vector<Point2f> FaceTracker::features(const Mat& image, const Rect& face) {
+
+    double quality = 0.01;
+    double min_distance = 10;
+
+    Mat mask = Mat::zeros(image.size(), CV_8UC1);
+    auto rrect = RotatedRect(Point2f(face.x + face.width/2, face.y + face.height/2),
+                             face.size(),
+                             0.f);
+
+    ellipse(mask, rrect, CV_RGB(255,255,255), CV_FILLED);
+
+#ifdef DEBUG_detection
+    imshow("detection-debug", mask);
+#endif
+
+    vector<Point2f> features;
+    features.reserve(NB_FEATURES);
+
+    goodFeaturesToTrack(image, features, NB_FEATURES, quality, min_distance, mask);
+    return features;
 }
 
 
