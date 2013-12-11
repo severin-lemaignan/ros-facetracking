@@ -26,6 +26,8 @@ class FaceTracker {
 public:
     FaceTracker(const cv::Mat& image, const std::vector<cv::Point2f>& features);
     std::vector<cv::Point2f> track(const cv::Mat& image);
+    void resetFeatures(const cv::Mat& image, const cv::Rect& face);
+
     static std::vector<cv::Point2f> features(const cv::Mat& image, const cv::Rect& face);
 
     cv::Point2f centroid() const {return _centroid;}

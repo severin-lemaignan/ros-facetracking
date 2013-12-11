@@ -73,13 +73,13 @@ int main(int argc, char *argv[])
 
             auto faces = facedetector.detect(inputImage);
 
-
             for( const auto& face : faces )
             {
                 bool alreadyTracked = false;
-                for(const auto& human : humans) {
+                for(auto& human : humans) {
                     if (human.isMyself(face))
                     {
+                        human.relocalizeFace(inputImage, face);
                         alreadyTracked = true;
                         break;
                     }
@@ -92,8 +92,15 @@ int main(int argc, char *argv[])
                 auto guess = faceRecognizer.whois(inputImage(face));
                 if (guess.second != 0.) {
                     cout << "\x1b[1F\t\t\tI think this is " << guess.first << " (confidence: " << guess.second << ")" << endl;
+                    for (auto& human : humans) {
+                        if (human.name() == guess.first)
+                        {
+                            human.relocalizeFace(inputImage, face);
+                            break;
+                        }
+                    }
                 } else {
-                    cout << "\x1b[1F\t\t\tI do not recognize this face!" << endl;
+                    cout << "\x1b[1F\t\t\tI do not recognize this face! Creating new human" << endl;
 
                     stringstream namestr;
                     namestr << "human" << humans.size() + 1;

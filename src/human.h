@@ -31,6 +31,11 @@ public:
      */
     Mode mode() const {return _mode;}
 
+    /** Set the face bounding box, and initialize accordingly the offset between the
+     * centroid of the tracked features and the boundingbox.
+     */
+    void relocalizeFace(const cv::Mat& image, const cv::Rect face);
+
     /** Update this face.
      *
      * This may mean:
@@ -40,14 +45,18 @@ public:
 
     void showFace(cv::Mat& ouputImage);
 
+    std::string name() const {return _name;}
+
 private:
 
+    std::string _name;
     cv::Rect boundingbox;
-    std::string name;
 
     Mode _mode;
 
     FaceTracker tracker;
+    //offset between the centroid of the tracked features and the actual face boundingbox.
+    cv::Point trackerOffset;
     std::vector<cv::Point2f> features;
     Recognizer& faceRecognizer;
     bool recognizerTrained;

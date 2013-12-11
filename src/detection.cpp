@@ -116,19 +116,23 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
         if (status[i] == 1) found.push_back(nextFeatures[i]);
     }
 
-    found = pruneFeatures(found);
 
     if (!found.empty()) {
 
         _centroid = mean(found);
-        _variance = variance(found);
-#ifdef DEBUG_detection
-        cout << "Variance: " << _variance << endl;
-#endif
+        // do not recompute the variance. Keep the original value computed when the face
+        // tracker is created.
     }
 
+    found = pruneFeatures(found);
     return found;
 
+}
+
+void FaceTracker::resetFeatures(const Mat& image, const Rect& face) {
+    prevFeatures = features(image, face);
+    _centroid = mean(prevFeatures);
+    _variance = variance(prevFeatures);
 }
 
 vector<Point2f> FaceTracker::features(const Mat& image, const Rect& face) {

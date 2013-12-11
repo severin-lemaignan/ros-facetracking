@@ -3,7 +3,7 @@
 
 #include "recognition.h"
 
-//#define DEBUG_recognition
+#define DEBUG_recognition
 #ifdef DEBUG_recognition
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
@@ -146,7 +146,10 @@ bool Recognizer::preprocessFace(const Mat& faceImg, Mat& dstImg) {
     bool eyes_detected = detectBothEyes(faceImg, leftEye, rightEye);
     
     // Check if both eyes were detected.
-    if (!eyes_detected) return false;
+    if (!eyes_detected) {
+        cout << "Eyes not detected!";
+        return false;
+    }
 
     // Make the face image the same size as the training images.
 
