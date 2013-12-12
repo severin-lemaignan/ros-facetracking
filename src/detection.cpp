@@ -1,3 +1,4 @@
+#include <iostream>
 #include "detection.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/video/video.hpp"
@@ -11,9 +12,17 @@
 using namespace cv;
 using namespace std;
 
+static const string face_classifier("haarcascade_frontalface_default.xml");
+
 FaceDetector::FaceDetector() :
-        frontalface(CascadeClassifier("haarcascade_frontalface_default.xml"))
+        frontalface(CascadeClassifier(INSTALL_PREFIX + ("/share/facetracking/" + face_classifier)))
 {
+
+    if (frontalface.empty()) {
+        cerr << "Could not load classifier model <" << face_classifier << ">!" << endl;
+        //TODO: bad in a library!!
+        exit(-1);
+    }
 
 #ifdef DEBUG_detection
     namedWindow("detection-debug");
@@ -107,7 +116,6 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
 
 
     prevImg = nextImg.clone();
-    prevFeatures = nextFeatures;
 
     vector<Point2f> found;
     found.reserve(NB_FEATURES);
@@ -125,6 +133,7 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
     }
 
     found = pruneFeatures(found);
+    prevFeatures = found;
     return found;
 
 }

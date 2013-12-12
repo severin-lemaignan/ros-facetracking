@@ -13,6 +13,8 @@
 using namespace cv;
 using namespace std;
 
+static const string eye_classifier("haarcascade_eye.xml");
+
 const double DESIRED_LEFT_EYE_X = 0.16;     // Controls how much of the face is visible after preprocessing.
 const double DESIRED_LEFT_EYE_Y = 0.14;
 const double FACE_ELLIPSE_CY = 0.40;
@@ -38,12 +40,18 @@ static Mat norm_0_255(InputArray _src) {
 }
 
 Recognizer::Recognizer():
-        eyes(CascadeClassifier("haarcascade_eye.xml"))
+        eyes(CascadeClassifier(INSTALL_PREFIX + ("/share/facetracking/" + eye_classifier)))
 {
 
-    int num_components = 0;
-    double threshold = 100.0;
+    if (eyes.empty()) {
+        cerr << "Could not load classifier model <" << eye_classifier << ">!" << endl;
+        //TODO: bad in a library!!
+        exit(-1);
+    }
 
+
+    //int num_components = 0;
+    //double threshold = 100.0;
     //model = createEigenFaceRecognizer(num_components, threshold);
     model = createEigenFaceRecognizer();
 }
@@ -68,7 +76,7 @@ bool Recognizer::addPictureOf(const Mat& image, const string& label) {
 
 
     if (trainingSet[idx].size() < MAX_TRAINING_IMAGES) {
-        cout << "\x1b[1F\t\t\tAcquiring " << trainingSet[idx].size() + 1 << "/" << MAX_TRAINING_IMAGES << " images for " << label << "... ";
+        cout << "Acquiring " << trainingSet[idx].size() + 1 << "/" << MAX_TRAINING_IMAGES << " images for " << label << "... ";
         Mat preprocessedFace;
 
         if (preprocessFace(image, preprocessedFace)) {
@@ -83,7 +91,7 @@ bool Recognizer::addPictureOf(const Mat& image, const string& label) {
 
     if (!trained_labels[idx])
     {
-        cout << "\x1b[1F\t\t\tEnough data for " << label << "! Training the recognizer..." << endl;
+        cout << "Enough data for " << label << "! Training the recognizer..." << endl;
         train(idx);
     }
     return true;
@@ -100,7 +108,7 @@ void Recognizer::train(int label) {
 
     model->train(images, labels);
     trained_labels[label] = true;
-    cout << "\x1b[1F\t\t\tI can now recognize " << human_labels[label] << " in new images." << endl;
+    cout << "I can now recognize " << human_labels[label] << " in new images." << endl;
 }
 
 pair<string, double> Recognizer::whois(const Mat& image) {

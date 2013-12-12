@@ -10,7 +10,11 @@
 
 enum Mode {LOST, TRACKING};
 
+class Face;
+
 class Human {
+
+    friend class Face;
 
 public:
     /** Initialize a new human, based on the bounding box of its face in the
@@ -61,6 +65,19 @@ private:
     Recognizer& faceRecognizer;
     bool recognizerTrained;
     
+};
+
+/** Public interface to the detected faces
+ */
+class Face {
+
+public:
+    Face(const Human& human):human(human) {}
+    std::string name() const {return human._name;}
+    cv::Rect boundingbox() const {return human.boundingbox;}
+    //cv::Point center() const {return human.boundingbox.tl() + (human.boundingbox.tl() - human.boundingbox.br())/2;}
+private:
+    const Human& human;
 };
 
 #endif // HUMAN_H
