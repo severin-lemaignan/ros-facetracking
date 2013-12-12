@@ -70,5 +70,5 @@ option (WITH_TESTS "build tests" OFF)
 
 if (WITH_TESTS)
     #enable_testing()
-    add_subdirectory(test)
+    add_subdirectory(testing)
 endif()
