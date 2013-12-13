@@ -20,3 +20,13 @@ endMACRO()
 add_definitions(-std=c++11)
 
 declare_test(TESTNAME tracking NEEDS_DATA)
+
+add_executable(annotator 
+               annotator.cpp)
+
+target_link_libraries(annotator
+   ${OpenCV_LIBRARIES}
+)
+
+
+
