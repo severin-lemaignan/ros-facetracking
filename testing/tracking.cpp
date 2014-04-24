@@ -1,5 +1,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
+#include <opencv2/core/utility.hpp> // getTickCount
 #include <iostream>
 
 // include log4cxx header files.
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
 
         auto debugImage = cameraImage.clone();
 
-        cvtColor(cameraImage, inputImage, CV_BGR2GRAY);
+        cvtColor(cameraImage, inputImage, cv::COLOR_BGR2GRAY);
 
         int64 tStartCount = cv::getTickCount();
 

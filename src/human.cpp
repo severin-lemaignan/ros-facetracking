@@ -88,26 +88,26 @@ void Human::showFace(Mat& outputImage) {
     if (_mode != LOST) {
 
         auto centroid = tracker.centroid();
-        line( outputImage, centroid, centroid, CV_RGB(10, 100, 200), 20 );
+        line( outputImage, centroid, centroid, cv::Scalar(10, 100, 200), 20 );
 
         for ( auto p : features ) {
-            line( outputImage, p, p, CV_RGB(10, 200, 100), 10 );
+            line( outputImage, p, p, cv::Scalar(10, 200, 100), 10 );
         }
 
         putText(outputImage,
                 _name,
                 centroid + Point2f(10,10),
-                FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(10,100,200));
+                FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(10,100,200));
     }
     else //LOST!
     {
         putText(outputImage,
                 _name + " LOST!",
                 boundingbox.tl() + Point(20,20),
-                FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(200,100,10));
+                FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200,100,10));
     }
 
-    rectangle( outputImage, boundingbox, CV_RGB(255,0,255), 4 );
+    rectangle( outputImage, boundingbox, cv::Scalar(255,0,255), 4 );
 }
 
 

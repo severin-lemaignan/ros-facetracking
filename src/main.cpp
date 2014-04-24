@@ -1,5 +1,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
+#include <opencv2/core/utility.hpp> // getTickCount
 #include <iostream>
 
 // include log4cxx header files.
@@ -37,8 +38,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    videoCapture.set(CV_CAP_PROP_FRAME_WIDTH, 640);
-    videoCapture.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+    videoCapture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    videoCapture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
 
     namedWindow("faces"); 
 
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
         videoCapture.read(cameraImage);
         auto debugImage = cameraImage.clone();
 
-        cvtColor(cameraImage, inputImage, CV_BGR2GRAY);
+        cvtColor(cameraImage, inputImage, cv::COLOR_BGR2GRAY);
 
         int64 tStartCount = cv::getTickCount();
 

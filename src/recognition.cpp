@@ -1,5 +1,6 @@
 #include <utility> // make_pair
 #include <iostream>
+#include <cassert>
 
 #include "recognition.h"
 
@@ -204,7 +205,7 @@ bool Recognizer::preprocessFace(const Mat& faceImg, Mat& dstImg) {
     Mat mask = Mat(warped.size(), CV_8U, Scalar(0)); // Start with an empty mask.
     Point faceCenter = Point( desiredFaceWidth/2, cvRound(desiredFaceHeight * FACE_ELLIPSE_CY) );
     Size size = Size( cvRound(desiredFaceWidth * FACE_ELLIPSE_W), cvRound(desiredFaceHeight * FACE_ELLIPSE_H) );
-    ellipse(mask, faceCenter, size, 0, 0, 360, Scalar(255), CV_FILLED);
+    ellipse(mask, faceCenter, size, 0, 0, 360, Scalar(255), -1); // tickness=-1 -> filled
     //imshow("mask", mask);
 
     // Use the mask, to remove outside pixels.
@@ -263,8 +264,8 @@ bool Recognizer::detectBothEyes(const Mat &face, Point &leftEye, Point &rightEye
 
 #ifdef DEBUG_recognition
     Mat debugImage = face.clone();
-    rectangle(debugImage, Rect(leftX, topY, widthX, heightY), CV_RGB(255,255,255), 3);
-    rectangle(debugImage, Rect(rightX, topY, widthX, heightY), CV_RGB(255,255,255), 3);
+    rectangle(debugImage, Rect(leftX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
+    rectangle(debugImage, Rect(rightX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
     namedWindow("eyes-debug");
     imshow("eyes-debug", debugImage);
 #endif
@@ -291,8 +292,8 @@ bool Recognizer::detectBothEyes(const Mat &face, Point &leftEye, Point &rightEye
     rightEye = Point(rightEyeRect.x + rightEyeRect.width/2, rightEyeRect.y + rightEyeRect.height/2);
 
 #ifdef DEBUG_recognition
-    line(debugImage, leftEye,leftEye, CV_RGB(255,255,255), 3);
-    line(debugImage, rightEye,rightEye, CV_RGB(255,255,255), 3);
+    line(debugImage, leftEye,leftEye, cv::Scalar(255,255,255), 3);
+    line(debugImage, rightEye,rightEye, cv::Scalar(255,255,255), 3);
     namedWindow("eyes-debug");
     imshow("eyes-debug", debugImage);
 #endif

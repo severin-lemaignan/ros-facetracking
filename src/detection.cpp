@@ -49,7 +49,7 @@ vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
     equalizeHist( inputImg, inputImg );
 
     //-- Detect faces
-    frontalface.detectMultiScale( inputImg, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
+    frontalface.detectMultiScale( inputImg, faces, 1.1, 2, 0, Size(30, 30) );
 
     for (auto& face : faces) {
         face.width *= scale;
@@ -154,7 +154,7 @@ vector<Point2f> FaceTracker::features(const Mat& image, const Rect& face) {
                              face.size(),
                              0.f);
 
-    ellipse(mask, rrect, CV_RGB(255,255,255), CV_FILLED);
+    ellipse(mask, rrect, cv::Scalar(255,255,255), -1); // tickness=-1 -> filled
 
 #ifdef DEBUG_detection
     imshow("detection-debug", mask);
