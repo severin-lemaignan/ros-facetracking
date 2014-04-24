@@ -26,22 +26,12 @@ add_library(facetracking SHARED
             src/detection.cpp 
             src/recognition.cpp)
 
-add_executable(facetracker 
-                src/main.cpp)
-
 target_link_libraries(facetracking
    ${OpenCV_LIBRARIES}
 )
 
-target_link_libraries(facetracker
-   facetracking
-   ${OpenCV_LIBRARIES}
-   ${log4cxx_LIBRARIES}
-)
-
-install(TARGETS facetracking facetracker
+install(TARGETS facetracking
    LIBRARY DESTINATION lib 
-   RUNTIME DESTINATION bin 
 )
 
 file(
@@ -67,7 +57,23 @@ install(FILES
 )
 
 
+option (WITH_DEMO "build a sample app" ON)
 option (WITH_TESTS "build tests" OFF)
+
+if (WITH_DEMO)
+    add_executable(facetracker 
+                    src/main.cpp)
+
+    target_link_libraries(facetracker
+    facetracking
+    ${OpenCV_LIBRARIES}
+    ${log4cxx_LIBRARIES}
+    )
+
+    install(TARGETS facetracker
+    RUNTIME DESTINATION bin 
+    )
+endif()
 
 if (WITH_TESTS)
     #enable_testing()
