@@ -50,10 +50,15 @@ public:
     void showFace(cv::Mat& ouputImage);
 
     std::string name() const {return _name;}
+    cv::Matx44d pose() const {return _pose;}
 
 private:
 
     std::string _name;
+
+    // the estimate of the 6D transformation of the human head from the
+    // camera perspective
+    cv::Matx44d _pose;
     cv::Rect boundingbox;
 
     Mode _mode;
@@ -76,6 +81,8 @@ public:
     std::string name() const {return human._name;}
     cv::Rect boundingbox() const {return human.boundingbox;}
     //cv::Point center() const {return human.boundingbox.tl() + (human.boundingbox.tl() - human.boundingbox.br())/2;}
+    cv::Matx44d pose() const {return human._pose;}
+
 private:
     const Human& human;
 };
