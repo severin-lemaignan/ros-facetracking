@@ -59,6 +59,7 @@ install(FILES
 
 option (WITH_DEMO "build a sample app" ON)
 option (WITH_TESTS "build tests" OFF)
+option (WITH_ROS "build the Robot Operating System (ROS) binding" OFF)
 
 if (WITH_DEMO)
     add_executable(facetracker 
@@ -78,4 +79,10 @@ endif()
 if (WITH_TESTS)
     #enable_testing()
     add_subdirectory(testing)
+endif()
+
+if (WITH_ROS)
+
+    add_subdirectory(platforms/ros)
+
 endif()
