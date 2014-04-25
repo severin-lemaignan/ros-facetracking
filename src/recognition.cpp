@@ -4,7 +4,7 @@
 
 #include "recognition.h"
 
-#define DEBUG_recognition
+//#define DEBUG_recognition
 #ifdef DEBUG_recognition
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
