@@ -73,8 +73,8 @@ vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
         face.x *= scale;
         face.y *= scale;
 
-        // only keep faces if the eyes are detected as well
-        if (detectBothEyes(image(face), leftEye, rightEye)) {
+        // only keep face if the eyes are detected as well
+        if (detectBothEyes(image(face), leftEye, rightEye, true)) {
                 faces.push_back(face);
         }
 
@@ -83,15 +83,27 @@ vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
 
 }
 
-bool FaceDetector::detectBothEyes(const Mat &face, Point &leftEye, Point &rightEye) const
+bool FaceDetector::detectBothEyes(const Mat &face, 
+                                  Point &leftEye, Point &rightEye, 
+                                  bool relaxed) const
 {
     // Skip the borders of the face, since it is usually just hair and ears, that we don't care about.
     
     // For default eye.xml or eyeglasses.xml: Finds both eyes in roughly 40% of detected faces, but does not detect closed eyes.
-    const float EYE_SX = 0.16f;
-    const float EYE_SY = 0.26f;
-    const float EYE_SW = 0.30f;
-    const float EYE_SH = 0.28f;
+
+    float EYE_SX = 0.16f;
+    float EYE_SY = 0.26f;
+    float EYE_SW = 0.30f;
+    float EYE_SH = 0.28f;
+
+    // in 'relaxed' mode, we look for the eyes in a larger portion of the
+    // image. Takes more time.
+    if (relaxed) {
+        EYE_SX = 0.1f;
+        EYE_SY = 0.2f;
+        EYE_SW = 0.40f;
+        EYE_SH = 0.4f;
+    }
 
     int leftX = cvRound(face.cols * EYE_SX);
     int topY = cvRound(face.rows * EYE_SY);
