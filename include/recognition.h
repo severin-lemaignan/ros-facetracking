@@ -4,8 +4,10 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "opencv2/core/core.hpp"
-#include "opencv2/contrib/contrib.hpp"
+#include <opencv2/core/core.hpp>
+#include <opencv2/contrib/contrib.hpp>
+
+#include "detection.h"
 
 // max nb of image per user we want to train the models on.
 static const int MAX_TRAINING_IMAGES = 5;
@@ -15,7 +17,7 @@ static const int FACE_WIDTH = 200;
 class Recognizer {
 
 public:
-    Recognizer();
+    Recognizer(const FaceDetector& detector);
 
     /** Add data to the training set, and train the model as soon as enough images
      * are available for a given label.
@@ -35,11 +37,9 @@ public:
     std::vector<cv::Mat> eigenfaces();
 
 private:
-    // we need to detect the eyes to preprocess the face before learning
-    cv::CascadeClassifier eyes;
-
-    bool detectBothEyes(const cv::Mat &face, cv::Point &leftEye, cv::Point &rightEye);
     void train(int label);
+
+    const FaceDetector& _detector;
 
     cv::Ptr<cv::FaceRecognizer> model;
 

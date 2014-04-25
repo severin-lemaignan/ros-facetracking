@@ -9,7 +9,7 @@ using namespace cv;
 using namespace std;
 
 
-FaceTracking::FaceTracking() : frameCount(0) {}
+FaceTracking::FaceTracking() : frameCount(0), faceRecognizer(facedetector) {}
 
 vector<Face> FaceTracking::track(const Mat inputImage, Mat debugImage)
 {

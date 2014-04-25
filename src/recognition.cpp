@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "recognition.h"
+#include "face_constants.h"
 
 //#define DEBUG_recognition
 #ifdef DEBUG_recognition
@@ -14,13 +15,8 @@
 using namespace cv;
 using namespace std;
 
-static const string eye_classifier("haarcascade_eye.xml");
-
 const double DESIRED_LEFT_EYE_X = 0.16;     // Controls how much of the face is visible after preprocessing.
 const double DESIRED_LEFT_EYE_Y = 0.14;
-const double FACE_ELLIPSE_CY = 0.40;
-const double FACE_ELLIPSE_W = 0.50;         // Should be atleast 0.5
-const double FACE_ELLIPSE_H = 0.80;         // Controls how tall the face mask is.
 
 static Mat norm_0_255(InputArray _src) {
     Mat src = _src.getMat();
@@ -40,16 +36,9 @@ static Mat norm_0_255(InputArray _src) {
     return dst;
 }
 
-Recognizer::Recognizer():
-        eyes(CascadeClassifier(INSTALL_PREFIX + ("/share/facetracking/" + eye_classifier)))
+Recognizer::Recognizer(const FaceDetector& detector):
+        _detector(detector)
 {
-
-    if (eyes.empty()) {
-        cerr << "Could not load classifier model <" << eye_classifier << ">!" << endl;
-        //TODO: bad in a library!!
-        exit(-1);
-    }
-
 
     //int num_components = 0;
     //double threshold = 100.0;
@@ -152,7 +141,7 @@ bool Recognizer::preprocessFace(const Mat& faceImg, Mat& dstImg) {
     
     // Search for the 2 eyes at the full resolution, since eye detection needs max resolution possible!
     Point leftEye, rightEye;
-    bool eyes_detected = detectBothEyes(faceImg, leftEye, rightEye);
+    bool eyes_detected = _detector.detectBothEyes(faceImg, leftEye, rightEye);
     
     // Check if both eyes were detected.
     if (!eyes_detected) {
@@ -221,82 +210,6 @@ bool Recognizer::preprocessFace(const Mat& faceImg, Mat& dstImg) {
     imshow("preprocessedface-debug", dstImg);
 #endif
 
-
-    return true;
-}
-
-
-bool Recognizer::detectBothEyes(const Mat &face, Point &leftEye, Point &rightEye)
-{
-    // Skip the borders of the face, since it is usually just hair and ears, that we don't care about.
-/*
-    // For "2splits.xml": Finds both eyes in roughly 60% of detected faces, also detects closed eyes.
-    const float EYE_SX = 0.12f;
-    const float EYE_SY = 0.17f;
-    const float EYE_SW = 0.37f;
-    const float EYE_SH = 0.36f;
-*/
-/*
-    // For mcs.xml: Finds both eyes in roughly 80% of detected faces, also detects closed eyes.
-    const float EYE_SX = 0.10f;
-    const float EYE_SY = 0.19f;
-    const float EYE_SW = 0.40f;
-    const float EYE_SH = 0.36f;
-*/
-
-    // For default eye.xml or eyeglasses.xml: Finds both eyes in roughly 40% of detected faces, but does not detect closed eyes.
-    const float EYE_SX = 0.16f;
-    const float EYE_SY = 0.26f;
-    const float EYE_SW = 0.30f;
-    const float EYE_SH = 0.28f;
-
-    int leftX = cvRound(face.cols * EYE_SX);
-    int topY = cvRound(face.rows * EYE_SY);
-    int widthX = cvRound(face.cols * EYE_SW);
-    int heightY = cvRound(face.rows * EYE_SH);
-    int rightX = cvRound(face.cols * (1.0-EYE_SX-EYE_SW) );  // Start of right-eye corner
-
-    Mat topLeftOfFace = face(Rect(leftX, topY, widthX, heightY));
-    Mat topRightOfFace = face(Rect(rightX, topY, widthX, heightY));
-
-    vector<Rect> leftEyeRects, rightEyeRects;
-    Rect leftEyeRect, rightEyeRect;
-
-#ifdef DEBUG_recognition
-    Mat debugImage = face.clone();
-    rectangle(debugImage, Rect(leftX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
-    rectangle(debugImage, Rect(rightX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
-    namedWindow("eyes-debug");
-    imshow("eyes-debug", debugImage);
-#endif
-
-
-    int flags = CASCADE_FIND_BIGGEST_OBJECT;
-    eyes.detectMultiScale( topLeftOfFace, leftEyeRects, 1.1, 2, flags, Size(30, 30) );
-    eyes.detectMultiScale( topRightOfFace, rightEyeRects, 1.1, 2, flags, Size(30, 30) );
-
-    if (   leftEyeRects.size() == 0
-        || rightEyeRects.size() == 0) // Check if the eye was detected.
-    {
-        return false;
-    }
-    leftEyeRect = leftEyeRects[0];
-    rightEyeRect = rightEyeRects[0];
-
-    leftEyeRect.x += leftX;    // Adjust the left-eye rectangle because the face border was removed.
-    leftEyeRect.y += topY;
-    leftEye = Point(leftEyeRect.x + leftEyeRect.width/2, leftEyeRect.y + leftEyeRect.height/2);
-
-    rightEyeRect.x += rightX; // Adjust the right-eye rectangle, since it starts on the right side of the image.
-    rightEyeRect.y += topY;  // Adjust the right-eye rectangle because the face border was removed.
-    rightEye = Point(rightEyeRect.x + rightEyeRect.width/2, rightEyeRect.y + rightEyeRect.height/2);
-
-#ifdef DEBUG_recognition
-    line(debugImage, leftEye,leftEye, cv::Scalar(255,255,255), 3);
-    line(debugImage, rightEye,rightEye, cv::Scalar(255,255,255), 3);
-    namedWindow("eyes-debug");
-    imshow("eyes-debug", debugImage);
-#endif
 
     return true;
 }

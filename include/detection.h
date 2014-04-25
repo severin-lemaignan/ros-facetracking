@@ -21,8 +21,13 @@ public:
 
     std::vector<cv::Rect> detect(const cv::Mat& image, int scaledWidth = 200);
 
+    bool detectBothEyes(const cv::Mat &face, cv::Point &leftEye, cv::Point &rightEye) const;
+
 private:
     cv::CascadeClassifier frontalface;
+    // why detectMultiScale is not const?? OpenCV bug?
+    mutable cv::CascadeClassifier eyes;
+
 };
 
 class FaceTracker {
