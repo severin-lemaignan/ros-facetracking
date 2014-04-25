@@ -1,6 +1,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
+#ifdef OPENCV3
 #include <opencv2/core/utility.hpp> // getTickCount
+#endif
 #include <iostream>
 
 // include log4cxx header files.
@@ -38,8 +40,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+#ifdef OPENCV3
     videoCapture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
     videoCapture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+#else
+    videoCapture.set(CV_CAP_PROP_FRAME_WIDTH, 640);
+    videoCapture.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+#endif
 
     namedWindow("faces"); 
 
@@ -57,12 +64,12 @@ int main(int argc, char *argv[])
 
         cvtColor(cameraImage, inputImage, cv::COLOR_BGR2GRAY);
 
-        int64 tStartCount = cv::getTickCount();
+        int64 tStartCount = getTickCount();
 
         auto humans = facetracking.track(inputImage, debugImage);
 
-        //cout << "Time to detect faces: " << ((double)cv::getTickCount() - tStartCount)/cv::getTickFrequency() * 1000. << "ms" << std::endl;
-        //cout << humans.size() << " face(s) detected." << endl;
+        cout << "Time to detect faces: " << ((double)getTickCount() - tStartCount)/getTickFrequency() * 1000. << "ms" << std::endl;
+        cout << humans.size() << " face(s) detected." << endl;
 
         imshow("faces", debugImage);
     }

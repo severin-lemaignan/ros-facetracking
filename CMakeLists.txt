@@ -5,8 +5,13 @@ set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 
-find_package(OpenCV REQUIRED COMPONENTS core video imgproc objdetect highgui contrib )
+find_package(OpenCV REQUIRED)
 message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+
+if(${OpenCV_VERSION} VERSION_GREATER 2.9.0)
+    add_definitions(-DOPENCV3)
+endif()
+
 
 find_package(PkgConfig)
 pkg_search_module(log4cxx REQUIRED liblog4cxx)

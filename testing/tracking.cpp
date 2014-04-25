@@ -1,6 +1,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
+#ifdef OPENCV3
 #include <opencv2/core/utility.hpp> // getTickCount
+#endif
 #include <iostream>
 
 // include log4cxx header files.
