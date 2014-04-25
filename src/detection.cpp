@@ -43,7 +43,9 @@ FaceDetector::FaceDetector() :
 
 vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
 
+    vector<Rect> rawfaces;
     vector<Rect> faces;
+    Point leftEye, rightEye;
     
     // Possibly shrink the image, to run much faster.
     Mat inputImg;
@@ -61,13 +63,21 @@ vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
     equalizeHist( inputImg, inputImg );
 
     //-- Detect faces
-    frontalface.detectMultiScale( inputImg, faces, 1.1, 2, 0, Size(30, 30) );
+    frontalface.detectMultiScale( inputImg, rawfaces, 1.1, 2, 0, Size(30, 30) );
 
-    for (auto& face : faces) {
+
+    for (auto& face : rawfaces) {
+
         face.width *= scale;
         face.height *= scale;
         face.x *= scale;
         face.y *= scale;
+
+        // only keep faces if the eyes are detected as well
+        if (detectBothEyes(image(face), leftEye, rightEye)) {
+                faces.push_back(face);
+        }
+
     }
     return faces;
 
