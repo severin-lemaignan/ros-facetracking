@@ -7,10 +7,10 @@
 #include <opencv2/objdetect/objdetect.hpp>
 
 // Amount of features to track on a face
-static const unsigned char NB_FEATURES = 20;
+static const unsigned char NB_FEATURES = 10;
 
 // Below this threshold of features, we need to re-initialize the tracker
-static const unsigned char FEATURES_THRESHOLD = 10;
+static const unsigned char FEATURES_THRESHOLD = 5;
 
 class FaceDetector {
 

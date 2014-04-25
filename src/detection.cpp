@@ -1,9 +1,12 @@
 #include <iostream>
-#include "detection.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/video/video.hpp"
 
-//#define DEBUG_detection
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/video/video.hpp>
+
+#include "detection.h"
+#include "face_constants.h"
+
+#define DEBUG_detection
 #ifdef DEBUG_detection
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
@@ -146,16 +149,16 @@ void FaceTracker::resetFeatures(const Mat& image, const Rect& face) {
 
 vector<Point2f> FaceTracker::features(const Mat& image, const Rect& face) {
 
-    double quality = 0.01;
-    double min_distance = 10;
+    double quality = 0.1;
+    double min_distance = 15;
 
-    Mat mask = Mat::zeros(image.size(), CV_8UC1);
-    auto rrect = RotatedRect(Point2f(face.x + face.width/2, face.y + face.height/2),
-                             face.size(),
-                             0.f);
-
-    ellipse(mask, rrect, cv::Scalar(255,255,255), -1); // tickness=-1 -> filled
-
+    Mat mask = Mat(image.size(), CV_8U, Scalar(0)); // Start with an empty mask.
+    Point faceCenter = Point( face.x + face.width/2, 
+                              face.y + face.height * FACE_ELLIPSE_CY);
+    Size size = Size( cvRound(face.size().width * FACE_ELLIPSE_W), 
+                      cvRound(face.size().height * FACE_ELLIPSE_H) );
+    ellipse(mask, faceCenter, size, 0, 0, 360, Scalar(255), -1); // tickness=-1 -> filled
+ 
     vector<Point2f> features;
     features.reserve(NB_FEATURES);
 
@@ -168,7 +171,6 @@ vector<Point2f> FaceTracker::features(const Mat& image, const Rect& face) {
     cvtColor(debugImage, debugImage, cv::COLOR_GRAY2BGR);
 
     rectangle( debugImage, face, cv::Scalar(0,0,255), 4 );
-    //rectangle( debugImage, rrect, cv::Scalar(255,0,255), 4 );
 
 
     for ( auto p : features ) {
