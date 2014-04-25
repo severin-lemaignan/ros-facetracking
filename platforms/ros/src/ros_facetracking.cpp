@@ -64,7 +64,7 @@ public:
         // hopefully no copy here:
         //  - assignement operator of cv::Mat does not copy the data
         //  - toCvShare does no copy if the default (source) encoding is used.
-        inputImage = cv_bridge::toCvShare(msg)->image; 
+        inputImage = cv_bridge::toCvShare(msg, "mono8")->image; 
 
 
         auto humans = facetracking.track(inputImage);

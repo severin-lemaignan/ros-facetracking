@@ -27,8 +27,6 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES ros_markers
   CATKIN_DEPENDS 
     tf
     nodelet
@@ -50,13 +48,11 @@ add_definitions(-std=c++11)
 
 set(LIBS 
     ${catkin_LIBRARIES}
-    ${CHILITAGS_LDFLAGS}
     ${OpenCV_LIBRARIES}
     )
 
-
 add_executable(track src/ros_facetracking.cpp)
-target_link_libraries(track ${LIBS})
+target_link_libraries(track facetracking ${LIBS})
 
 #add_library(markers_nodelet src/chilitagsdetector.cpp src/nodelet.cpp)
 #add_dependencies(markers_nodelet ${catkin_EXPORTED_TARGETS})
@@ -69,14 +65,12 @@ target_link_libraries(track ${LIBS})
 
 #install(TARGETS detect markers_nodelet
 install(TARGETS track
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(FILES
     launch/track.launch
-    launch/gscam_nodelet_pipeline.launch
+    #launch/gscam_nodelet_pipeline.launch
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

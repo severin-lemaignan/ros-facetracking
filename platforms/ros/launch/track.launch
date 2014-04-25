@@ -1,0 +1,17 @@
+<launch>
+
+  <!-- Sets the video stream topic -->
+  <arg name="source" default="/camera/image_raw" />
+  <!-- Set the reference frame name. Human poses will be broadcasted from this frame -->
+  <arg name="frame" default="camera_frame" />
+
+  <remap from="image" to="$(arg source)" />
+
+  <node pkg="ros_facetracking" type="track" name="ros_facetracking">
+
+    <!-- Sets the TF frame of the camera. -->
+    <param name="camera_frame_id" type="str" value="$(arg frame)" />
+
+  </node>
+
+</launch>
