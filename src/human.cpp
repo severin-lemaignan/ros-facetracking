@@ -1,7 +1,9 @@
 #include <iostream>
+
 #include "human.h"
 
 #include "detection.h" // FEATURES_THRESHOLD
+#include "face_constants.h"
 
 //#define DEBUG_human
 
@@ -36,10 +38,7 @@ void Human::relocalizeFace(const Mat& image, const Rect face)
 {
     boundingbox = face;
 
-    if (_mode == LOST)
-    {
-        tracker.resetFeatures(image, face);
-    }
+    tracker.resetFeatures(image, face);
 
     // explicit conversion from Point2f to Point
     Point centroid = tracker.centroid();
@@ -47,6 +46,37 @@ void Human::relocalizeFace(const Mat& image, const Rect face)
     trackerOffset = face.tl() - centroid;
 
     _mode = TRACKING;
+}
+
+void Human::estimatePose(const Size& image_size,
+                         const Point2f& leftEye, const Point2f& rightEye) {
+
+    double focalLength = 700.;
+    //Mat cameraMatrix = (cv::Mat_<double>(3,3) <<
+    //    focalLength ,            0 , image_size.width /2,
+    //               0 , focalLength , image_size.height/2,
+    //               0,             0 , 1
+    //);
+
+    // Computation based on http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
+    // 'z' is computed first, using the 2 points (left and right pupil)
+    // and resulting translation is then computed using left eye only.
+    // To be more correct, the camera intrinsic matrix could be used.
+    float z = focalLength * (LEFT_PUPIL.y - RIGHT_PUPIL.y) / (leftEye.y - rightEye.y);
+
+    float tx = (z * (leftEye.x - image_size.width/2) / focalLength) - LEFT_PUPIL.x;
+    float ty = (z * (leftEye.y - image_size.height/2) / focalLength) - LEFT_PUPIL.y;
+    float tz = z - LEFT_PUPIL.z;
+
+
+    _pose = {
+        1, 0, 0, tx * .001, // matrix in meters
+        0, 1, 0, ty * .001,
+        0, 0, 1, tz * .001,
+        0, 0, 0, 1
+    };
+
+
 }
 
 void Human::update(const Mat inputImage)

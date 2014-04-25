@@ -71,6 +71,14 @@ int main(int argc, char *argv[])
         cout << "Time to detect faces: " << ((double)getTickCount() - tStartCount)/getTickFrequency() * 1000. << "ms" << std::endl;
         cout << humans.size() << " face(s) detected." << endl;
 
+        for (auto& human : humans) {
+            auto pose = human.pose();
+            cout << "Human " << human.name() << ": ";
+            cout << "x: " << pose(0,3);
+            cout << " y: " << pose(1,3);
+            cout << " z: " << pose(2,3) << endl;
+        }
+
         imshow("faces", debugImage);
     }
 

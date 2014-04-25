@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <tuple>
 
 #include "facetracking.h"
 
@@ -15,15 +16,23 @@ vector<Face> FaceTracking::track(const Mat inputImage, Mat debugImage)
 {
     // Force detection every few second to be able to detect new users.
     if (frameCount % FRAMES_BETWEEN_DETECTION == 0) {
-
         auto faces = facedetector.detect(inputImage);
 
-        for( const auto& face : faces )
+        for( const auto& face_details : faces )
         {
+            Rect face;
+            Point lefteye, righteye;
+
+            // yeah! tuple unpacking in C++11
+            tie(face, lefteye, righteye) = face_details;
+
             bool alreadyTracked = false;
             for(auto& human : humans) {
                 if (human.isMyself(face))
                 {
+                    human.estimatePose(inputImage.size(), 
+                                       lefteye, righteye);
+
                     human.relocalizeFace(inputImage, face);
                     alreadyTracked = true;
                     break;

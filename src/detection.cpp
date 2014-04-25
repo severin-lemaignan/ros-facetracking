@@ -1,4 +1,5 @@
 #include <iostream>
+#include <tuple>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/video/video.hpp>
@@ -41,10 +42,11 @@ FaceDetector::FaceDetector() :
 #endif
 }
 
-vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
+vector<tuple<Rect, Point, Point>> FaceDetector::detect(const Mat& image, int scaledWidth) {
 
     vector<Rect> rawfaces;
-    vector<Rect> faces;
+    vector<tuple<Rect, Point, Point>> faces;
+
     Point leftEye, rightEye;
     
     // Possibly shrink the image, to run much faster.
@@ -75,7 +77,9 @@ vector<Rect> FaceDetector::detect(const Mat& image, int scaledWidth) {
 
         // only keep face if the eyes are detected as well
         if (detectBothEyes(image(face), leftEye, rightEye, true)) {
-                faces.push_back(face);
+                faces.push_back(make_tuple(face, 
+                                           leftEye + face.tl(), 
+                                           rightEye + face.tl()));
         }
 
     }
@@ -121,8 +125,6 @@ bool FaceDetector::detectBothEyes(const Mat &face,
     Mat debugImage = face.clone();
     rectangle(debugImage, Rect(leftX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
     rectangle(debugImage, Rect(rightX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
-    namedWindow("eyes-debug");
-    imshow("eyes-debug", debugImage);
 #endif
 
 

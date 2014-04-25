@@ -19,7 +19,7 @@ public:
 
     FaceDetector();
 
-    std::vector<cv::Rect> detect(const cv::Mat& image, int scaledWidth = 200);
+    std::vector<std::tuple<cv::Rect, cv::Point, cv::Point>> detect(const cv::Mat& image, int scaledWidth = 200);
 
     bool detectBothEyes(const cv::Mat &face, 
                         cv::Point &leftEye, cv::Point &rightEye,

@@ -40,6 +40,12 @@ public:
      */
     void relocalizeFace(const cv::Mat& image, const cv::Rect face);
 
+    /** Estimate the 3D pose of the human based on the location of the eyes in the
+     * image.
+     */
+    void estimatePose(const cv::Size& image_size,
+                      const cv::Point2f& leftEye, const cv::Point2f& rightEye);
+
     /** Update this face.
      *
      * This may mean:
