@@ -59,7 +59,9 @@ vector<Face> FaceTracking::track(const Mat inputImage, Mat debugImage)
     // face tracking!
     for( auto human : humans) {
         human.update(inputImage);
-        faces.push_back(Face(human));
+
+        if (human.mode() != LOST) faces.push_back(Face(human));
+
         if (!debugImage.empty()) human.showFace(debugImage);
     }
 

@@ -36,10 +36,10 @@ void Human::relocalizeFace(const Mat& image, const Rect face)
 {
     boundingbox = face;
 
-    //if (_mode == LOST)
-    //{
+    if (_mode == LOST)
+    {
         tracker.resetFeatures(image, face);
-    //}
+    }
 
     // explicit conversion from Point2f to Point
     Point centroid = tracker.centroid();
@@ -51,6 +51,8 @@ void Human::relocalizeFace(const Mat& image, const Rect face)
 
 void Human::update(const Mat inputImage)
 {
+    if (_mode == LOST) return;
+
     features = tracker.track(inputImage);
 
     if (features.size() < FEATURES_THRESHOLD) {
