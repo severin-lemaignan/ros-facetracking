@@ -5,8 +5,6 @@
 
 #include "facetracking.h"
 
-#define DEBUG_facetracking
-
 using namespace cv;
 using namespace std;
 

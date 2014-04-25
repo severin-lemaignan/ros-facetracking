@@ -129,7 +129,7 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
 
         _centroid = mean(found);
         // do not recompute the variance. Keep the original value computed when the face
-        // tracker is created.
+        // tracker is created or reset.
     }
 
     found = pruneFeatures(found);
@@ -156,18 +156,35 @@ vector<Point2f> FaceTracker::features(const Mat& image, const Rect& face) {
 
     ellipse(mask, rrect, cv::Scalar(255,255,255), -1); // tickness=-1 -> filled
 
-#ifdef DEBUG_detection
-    imshow("detection-debug", mask);
-#endif
-
     vector<Point2f> features;
     features.reserve(NB_FEATURES);
 
     goodFeaturesToTrack(image, features, NB_FEATURES, quality, min_distance, mask);
+
+#ifdef DEBUG_detection
+    Mat debugImage;
+    image.copyTo(debugImage, mask);
+    
+    cvtColor(debugImage, debugImage, cv::COLOR_GRAY2BGR);
+
+    rectangle( debugImage, face, cv::Scalar(0,0,255), 4 );
+    //rectangle( debugImage, rrect, cv::Scalar(255,0,255), 4 );
+
+
+    for ( auto p : features ) {
+        line( debugImage, p, p, cv::Scalar(10, 200, 100), 10 );
+    }
+
+    imshow("detection-debug", debugImage);
+#endif
+
     return features;
 }
 
-
+/**
+ * Only keep features 'close enough' to the feature cloud centroid.
+ * 'close' is dependent on the initial variance of the cloud.
+ */
 vector<Point2f> FaceTracker::pruneFeatures(const vector<Point2f>& features) {
 
     //auto centroid = mean(features);

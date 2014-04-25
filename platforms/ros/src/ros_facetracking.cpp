@@ -69,9 +69,8 @@ public:
 
         auto humans = facetracking.track(inputImage);
 
-        ROS_DEBUG_STREAM(humans.size() << " humans found.");
-        
-        // do smthg intelligent here
+        ROS_INFO_STREAM(humans.size() << " humans found.");
+
         for (auto& human : humans) {
 
             setROSTransform(human.pose(), 
@@ -97,6 +96,7 @@ int main(int argc, char* argv[])
     //ROS initialization
     ros::init(argc, argv, "ros_facetracking");
     ros::NodeHandle rosNode;
+
     ros::NodeHandle _private_node("~");
 
     // load parameters

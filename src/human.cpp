@@ -1,7 +1,9 @@
 #include <iostream>
 #include "human.h"
 
-#define DEBUG_human
+#include "detection.h" // FEATURES_THRESHOLD
+
+//#define DEBUG_human
 
 using namespace std;
 using namespace cv;
@@ -34,10 +36,10 @@ void Human::relocalizeFace(const Mat& image, const Rect face)
 {
     boundingbox = face;
 
-    if (_mode == LOST)
-    {
+    //if (_mode == LOST)
+    //{
         tracker.resetFeatures(image, face);
-    }
+    //}
 
     // explicit conversion from Point2f to Point
     Point centroid = tracker.centroid();
@@ -51,7 +53,7 @@ void Human::update(const Mat inputImage)
 {
     features = tracker.track(inputImage);
 
-    if (features.size() < 10) {
+    if (features.size() < FEATURES_THRESHOLD) {
 #ifdef DEBUG_human
         cout << "Not enough features! Going back to detection" << endl;
 #endif
