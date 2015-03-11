@@ -90,7 +90,7 @@ public:
     cv::Matx44d pose() const {return human._pose;}
 
 private:
-    const Human& human;
+    const Human human;
 };
 
 #endif // HUMAN_H
