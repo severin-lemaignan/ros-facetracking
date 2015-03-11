@@ -7,8 +7,7 @@
 #include "detection.h"
 #include "face_constants.h"
 
-#define DEBUG_detection
-#ifdef DEBUG_detection
+#ifdef DEBUG
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #endif
@@ -37,7 +36,7 @@ FaceDetector::FaceDetector() :
     }
 
 
-#ifdef DEBUG_detection
+#ifdef DEBUG
     namedWindow("detection-debug");
 #endif
 }
@@ -121,7 +120,7 @@ bool FaceDetector::detectBothEyes(const Mat &face,
     vector<Rect> leftEyeRects, rightEyeRects;
     Rect leftEyeRect, rightEyeRect;
 
-#ifdef DEBUG_detection
+#ifdef DEBUG
     Mat debugImage = face.clone();
     rectangle(debugImage, Rect(leftX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
     rectangle(debugImage, Rect(rightX, topY, widthX, heightY), cv::Scalar(255,255,255), 3);
@@ -148,7 +147,7 @@ bool FaceDetector::detectBothEyes(const Mat &face,
     rightEyeRect.y += topY;  // Adjust the right-eye rectangle because the face border was removed.
     rightEye = Point(rightEyeRect.x + rightEyeRect.width/2, rightEyeRect.y + rightEyeRect.height/2);
 
-#ifdef DEBUG_detection
+#ifdef DEBUG
     line(debugImage, leftEye,leftEye, cv::Scalar(255,255,255), 3);
     line(debugImage, rightEye,rightEye, cv::Scalar(255,255,255), 3);
     namedWindow("eyes-debug");
@@ -188,7 +187,7 @@ FaceTracker::FaceTracker(const Mat& image,
                 _centroid(mean(features)),
                 _variance(variance(features))
 {
-#ifdef DEBUG_detection
+#ifdef DEBUG
     cout << "Initial variance of the feature cluster: " << _variance << endl;
 #endif
 }
@@ -206,7 +205,7 @@ vector<Point2f> FaceTracker::track(const Mat& nextImg) {
                          Size(10,10), 3, 
                          TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 20, 0.01));
 
-#ifdef DEBUG_detection
+#ifdef DEBUG
     cout << "Optical flow status: ";
     for (auto s : status) cout << (int)s << " ";
     cout << endl;
@@ -260,7 +259,7 @@ vector<Point2f> FaceTracker::features(const Mat& image, const Rect& face) {
 
     goodFeaturesToTrack(image, features, NB_FEATURES, quality, min_distance, mask);
 
-#ifdef DEBUG_detection
+#ifdef DEBUG
     Mat debugImage;
     image.copyTo(debugImage, mask);
     

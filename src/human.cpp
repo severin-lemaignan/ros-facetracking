@@ -5,8 +5,6 @@
 #include "detection.h" // FEATURES_THRESHOLD
 #include "face_constants.h"
 
-//#define DEBUG_human
-
 using namespace std;
 using namespace cv;
 
@@ -86,7 +84,7 @@ void Human::update(const Mat inputImage)
     features = tracker.track(inputImage);
 
     if (features.size() < FEATURES_THRESHOLD) {
-#ifdef DEBUG_human
+#ifdef DEBUG
         cout << "Not enough features! Going back to detection" << endl;
 #endif
         _mode = LOST;
@@ -101,7 +99,7 @@ void Human::update(const Mat inputImage)
     boundingbox.height = min(inputImage.rows - boundingbox.y, boundingbox.height);
 
 
-#ifdef DEBUG_human
+#ifdef DEBUG
     cout << "Tracking " << features.size() << " features" << endl;
 #endif
 
@@ -109,7 +107,7 @@ void Human::update(const Mat inputImage)
     {
         recognizerTrained = faceRecognizer.addPictureOf(inputImage(boundingbox), _name);
  
-#ifdef DEBUG_human
+#ifdef DEBUG
         if (recognizerTrained) {
             cout << "Model trained for " << _name << ". I can now recognize him!" << endl;
         }

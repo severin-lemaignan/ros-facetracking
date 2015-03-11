@@ -12,6 +12,10 @@ if(${OpenCV_VERSION} VERSION_GREATER 2.9.0)
     add_definitions(-DOPENCV3)
 endif()
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG)
+endif()
+
 
 find_package(PkgConfig)
 pkg_search_module(log4cxx REQUIRED liblog4cxx)
