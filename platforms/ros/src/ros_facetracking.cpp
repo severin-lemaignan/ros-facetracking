@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 
     // initialize the detector by subscribing to the camera video stream
     ROSFaceTracker tracker(rosNode, camera_frame);
-    ROS_INFO("ros_facetracking is ready. Humans locations will be published on TF when detected.");
+    ROS_INFO_STREAM("ros_facetracking is ready. Humans locations will be published on TF. The camera frame is " << camera_frame);
     ros::spin();
 
     return 0;

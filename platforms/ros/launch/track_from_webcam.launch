@@ -1,0 +1,21 @@
+<!-- -*- mode: XML -*- -->
+<launch>
+  <arg name="frame" default="camera_frame" />
+
+  <include file="$(find gscam)/v4l.launch" >
+    <param name="frame_id" value="$(arg frame)"/>
+  </include>
+
+  <arg name="image_topic" default="/v4l/camera/image_raw" />
+  <remap from="image" to="$(arg image_topic)" />
+ 
+  <node pkg="ros_facetracking" type="track" name="ros_facetracking">
+
+    <!-- Sets the TF frame of the camera. -->
+    <param name="camera_frame_id" type="str" value="$(arg frame)" />
+
+  </node>
+
+
+
+</launch>

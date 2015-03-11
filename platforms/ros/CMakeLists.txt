@@ -70,7 +70,7 @@ install(TARGETS track
 
 install(FILES
     launch/track.launch
-    #launch/gscam_nodelet_pipeline.launch
+    launch/track_from_webcam.launch
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
