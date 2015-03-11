@@ -5,6 +5,7 @@
 #include <tf/transform_broadcaster.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
+#include <std_msgs/Int16.h>
 
 #include "facetracking.h"
 
@@ -27,6 +28,8 @@ class ROSFaceTracker {
     tf::Transform transform;
     std::string camera_frame;
 
+    ros::Publisher detectedfaces_pub;
+
     Mat inputImage;
 
     FaceTracking facetracking;
@@ -41,6 +44,8 @@ public:
     {
 
         sub = it.subscribeCamera("image", 1, &ROSFaceTracker::track, this);
+
+        detectedfaces_pub = rosNode.advertise<std_msgs::Int16>("detectedfaces", 5);
     }
 
     void setROSTransform(Matx44d trans, tf::Transform& transform)
@@ -70,6 +75,8 @@ public:
         auto humans = facetracking.track(inputImage);
 
         ROS_INFO_STREAM(humans.size() << " humans found.");
+
+        detectedfaces_pub.publish(humans.size());
 
         for (auto& human : humans) {
 
