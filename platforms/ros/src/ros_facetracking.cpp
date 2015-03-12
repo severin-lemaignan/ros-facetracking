@@ -76,7 +76,9 @@ public:
 
         ROS_INFO_STREAM(humans.size() << " humans found.");
 
-        detectedfaces_pub.publish(humans.size());
+	std_msgs::Int16 nbfaces;
+	nbfaces.data = humans.size();
+        detectedfaces_pub.publish(nbfaces);
 
         for (auto& human : humans) {
 
