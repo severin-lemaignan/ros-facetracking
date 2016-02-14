@@ -1,3 +1,5 @@
+**THIS PROJECT IS DEPRECATED IN FAVOUR OF [GAZR](https://github.com/severin-lemaignan/gazr), A MUCH BETTER FACE TRACKER**
+
 ros-facetracking
 ================
 
